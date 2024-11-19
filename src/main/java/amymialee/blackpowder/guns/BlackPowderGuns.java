@@ -2,42 +2,41 @@ package amymialee.blackpowder.guns;
 
 import amymialee.blackpowder.BlackPowder;
 import com.oroarmor.multi_item_lib.UniqueItemRegistry;
-import net.minecraft.item.Item;
-import net.minecraft.sound.SoundEvent;
+import net.minecraft.world.item.Item;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 import static amymialee.blackpowder.items.BlackPowderItems.*;
 import static amymialee.blackpowder.BlackPowder.*;
 
 public class BlackPowderGuns {
     static SoundEvent[] blunderbussSounds = {
-            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_LOADING_START,
-            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_LOADING_MIDDLE,
-            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_LOADING_END,
-            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_SHOOT,
-            GunSoundEvents.ENTITY_BULLET_IMPACT
+            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_LOADING_START.get(),
+            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_LOADING_MIDDLE.get(),
+            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_LOADING_END.get(),
+            GunSoundEvents.ITEM_BLUNDERBUSS_PISTOL_SHOOT.get(),
+            GunSoundEvents.ENTITY_BULLET_IMPACT.get()
     };
     static SoundEvent[] flintlockSounds = {
-            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_LOADING_START,
-            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_LOADING_MIDDLE,
-            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_LOADING_END,
-            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_SHOOT,
-            GunSoundEvents.ENTITY_BULLET_IMPACT
+            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_LOADING_START.get(),
+            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_LOADING_MIDDLE.get(),
+            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_LOADING_END.get(),
+            GunSoundEvents.ITEM_FLINTLOCK_PISTOL_SHOOT.get(),
+            GunSoundEvents.ENTITY_BULLET_IMPACT.get()
     };
     static SoundEvent[] musketSounds = {
-            GunSoundEvents.ITEM_MUSKET_PISTOL_LOADING_START,
-            GunSoundEvents.ITEM_MUSKET_PISTOL_LOADING_MIDDLE,
-            GunSoundEvents.ITEM_MUSKET_PISTOL_LOADING_END,
-            GunSoundEvents.ITEM_MUSKET_PISTOL_SHOOT,
-            GunSoundEvents.ENTITY_BULLET_IMPACT
+            GunSoundEvents.ITEM_MUSKET_PISTOL_LOADING_START.get(),
+            GunSoundEvents.ITEM_MUSKET_PISTOL_LOADING_MIDDLE.get(),
+            GunSoundEvents.ITEM_MUSKET_PISTOL_LOADING_END.get(),
+            GunSoundEvents.ITEM_MUSKET_PISTOL_SHOOT.get(),
+            GunSoundEvents.ENTITY_BULLET_IMPACT.get()
     };
     static SoundEvent[] rifleSounds = {
-            GunSoundEvents.ITEM_RIFLE_PISTOL_LOADING_START,
-            GunSoundEvents.ITEM_RIFLE_PISTOL_LOADING_MIDDLE,
-            GunSoundEvents.ITEM_RIFLE_PISTOL_LOADING_END,
-            GunSoundEvents.ITEM_RIFLE_PISTOL_SHOOT,
-            GunSoundEvents.ENTITY_BULLET_IMPACT
+            GunSoundEvents.ITEM_RIFLE_PISTOL_LOADING_START.get(),
+            GunSoundEvents.ITEM_RIFLE_PISTOL_LOADING_MIDDLE.get(),
+            GunSoundEvents.ITEM_RIFLE_PISTOL_LOADING_END.get(),
+            GunSoundEvents.ITEM_RIFLE_PISTOL_SHOOT.get(),
+            GunSoundEvents.ENTITY_BULLET_IMPACT.get()
     };
 
     public static Item FLINTLOCK_PISTOL = new GunItem(1, config.FlintlockInaccuracy, config.FlintlockReloadTime, config.FlintlockQuickChargeTime,

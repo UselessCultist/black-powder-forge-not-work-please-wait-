@@ -6,36 +6,47 @@ import com.google.common.collect.Lists;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.*;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.monster.CrossbowAttackMob;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.item.*;
+import net.minecraft.world.item.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.stat.Stats;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stat;
+import net.minecraft.stats.Stats;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.List;
 import java.util.Random;
@@ -107,41 +118,42 @@ public class GunItem extends CrossbowItem {
         return (stack) -> stack.getItem() == ammo;
     }
 
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        ItemStack itemStack = user.getStackInHand(hand);
+    public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+        ItemStack itemStack = user.getItemInHand(hand);
         if (isCharged(itemStack)) {
             shootAll(world, user, itemStack, getSpeed(), inaccuracy);
             setCharged(itemStack, false);
-            return TypedActionResult.consume(itemStack);
-        } else if (!user.getArrowType(itemStack).isEmpty()) {
+            return InteractionResultHolder.consume(itemStack);
+        } else if (!user.getProjectile(itemStack).isEmpty()) {
             if (!isCharged(itemStack)) {
                 this.charged = false;
                 this.loaded = false;
-                user.setCurrentHand(hand);
+                //user.setCurrentHand(hand);==============================================
             }
 
-            return TypedActionResult.consume(itemStack);
+            return InteractionResultHolder.consume(itemStack);
         } else {
-            return TypedActionResult.fail(itemStack);
+            return InteractionResultHolder.fail(itemStack);
         }
     }
 
-    public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+    public void onStoppedUsing(ItemStack stack, Level world, LivingEntity user, int remainingUseTicks) {
+        Random random = new Random();
         int i = this.getMaxUseTime(stack) - remainingUseTicks;
         float f = getPullProgress(i, stack);
         if (f >= 1.0F && !isCharged(stack) && loadProjectiles(user, stack)) {
             setCharged(stack, true);
-            SoundCategory soundCategory = user instanceof PlayerEntity ? SoundCategory.PLAYERS : SoundCategory.HOSTILE;
-            world.playSound(null, user.getX(), user.getY(), user.getZ(), END, soundCategory, 1.0F, 1.0F / (RANDOM.nextFloat() * 0.5F + 1.0F) + 0.2F);
+            SoundSource soundCategory = user instanceof Player ? SoundSource.PLAYERS : SoundSource.HOSTILE;
+            world.playSound(null, user.getX(), user.getY(), user.getZ(), END, soundCategory, 1.0F, 1.0F / (random.nextFloat() * 0.5F + 1.0F) + 0.2F);
         }
 
     }
 
     private static boolean loadProjectiles(LivingEntity shooter, ItemStack projectile) {
-        int i = EnchantmentHelper.getLevel(Enchantments.MULTISHOT, projectile);
+        int i = EnchantmentHelper.getTagEnchantmentLevel(Enchantments.MULTISHOT, projectile);
         int j = i == 0 ? 1 : 3;
-        boolean bl = shooter instanceof PlayerEntity && ((PlayerEntity)shooter).abilities.creativeMode;
-        ItemStack itemStack = shooter.getArrowType(projectile);
+        boolean bl = shooter instanceof Player && ((Player)shooter).isCreative();
+        ItemStack itemStack = shooter.getProjectile(projectile);
         ItemStack itemStack2 = itemStack.copy();
         for(int k = 0; k < j; ++k) {
             if (bl) {
@@ -169,8 +181,8 @@ public class GunItem extends CrossbowItem {
             ItemStack itemStack2;
             if (!bl && !creative && !simulated) {
                 itemStack2 = projectile.split(1);
-                if (projectile.isEmpty() && shooter instanceof PlayerEntity) {
-                    ((PlayerEntity)shooter).inventory.removeOne(projectile);
+                if (projectile.isEmpty() && shooter instanceof Player) {
+                    ((Player)shooter).getInventory().removeItem(projectile);
                 }
             } else {
                 itemStack2 = projectile.copy();
@@ -201,7 +213,7 @@ public class GunItem extends CrossbowItem {
         }
 
         CompoundTag compoundTag2 = new CompoundTag();
-        projectile.toTag(compoundTag2);
+        compoundTag2 = projectile.getOrCreateTag();
         listTag2.add(compoundTag2);
         compoundTag.put("ChargedProjectiles", listTag2);
     }
@@ -214,7 +226,7 @@ public class GunItem extends CrossbowItem {
             if (listTag != null) {
                 for(int i = 0; i < listTag.size(); ++i) {
                     CompoundTag compoundTag2 = listTag.getCompound(i);
-                    list.add(ItemStack.fromTag(compoundTag2));
+                    list.add(ItemStack.of(compoundTag2));
                 }
             }
         }
@@ -231,59 +243,59 @@ public class GunItem extends CrossbowItem {
         }
     }
 
-    private static void shoot(World world, LivingEntity shooter, ItemStack gun, ItemStack projectile, float soundPitch, float speed, float divergence, float simulated) {
-        if (!world.isClient) {
+    private static void shoot(Level world, LivingEntity shooter, ItemStack gun, ItemStack projectile, float soundPitch, float speed, float divergence, float simulated) {
+        if (!world.isClientSide) {
             for(int b = 0; b < GunItem.getBulletCount((GunItem) gun.getItem()); b++) {
-                PersistentProjectileEntity projectileEntity2 = createBullet(world, shooter, gun, projectile);
+            	Projectile projectileEntity2 = createBullet(world, shooter, gun, projectile);
                 if (projectileEntity2 != null) {
-                    projectileEntity2.pickupType = PersistentProjectileEntity.PickupPermission.CREATIVE_ONLY;
+                    ((AbstractArrow)projectileEntity2).pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
 
-                    if (shooter instanceof CrossbowUser) {
-                        CrossbowUser crossbowUser = (CrossbowUser) shooter;
-                        crossbowUser.shoot(crossbowUser.getTarget(), gun, projectileEntity2, simulated);
+                    if (shooter instanceof CrossbowAttackMob) {
+                    	CrossbowAttackMob crossbowUser = (CrossbowAttackMob) shooter;
+                    	crossbowUser.shootCrossbowProjectile(crossbowUser.getTarget(), gun, projectileEntity2, simulated);
                     } else {
-                        Vec3d vec3d = shooter.getOppositeRotationVector(1.0F);
-                        Quaternion quaternion = new Quaternion(new Vector3f(vec3d), simulated, true);
-                        Vec3d vec3d2 = shooter.getRotationVec(1.0F);
-                        Vector3f vector3f = new Vector3f(vec3d2);
-                        vector3f.rotate(quaternion);
-                        projectileEntity2.setVelocity(vector3f.getX(), vector3f.getY(), vector3f.getZ(), speed, divergence);
+                        Vec3 vec3d = shooter.getUpVector(1.0F);
+                        Quaternionf quaternionf = (new Quaternionf()).setAngleAxis((double)(simulated * ((float)Math.PI / 180F)), vec3d.x, vec3d.y, vec3d.z);
+                        Vec3 vec3d2 = shooter.getViewVector(1.0F);
+                        Vector3f vector3f = vec3d.toVector3f().rotate(quaternionf);
+                        vector3f.rotate(quaternionf);
+                        projectileEntity2.shoot((double)vector3f.x(), (double)vector3f.y(), (double)vector3f.z(), speed, divergence);
                     }
 
                     world.spawnEntity(projectileEntity2);
                 }
             }
-            world.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(), GunItem.getShootSound((GunItem) gun.getItem()), SoundCategory.PLAYERS, 1.0F, soundPitch);
+            world.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(), GunItem.getShootSound((GunItem) gun.getItem()), SoundSource.PLAYERS, 1.0F, soundPitch);
         }
     }
 
-    private static PersistentProjectileEntity createBullet(World world, LivingEntity entity, ItemStack gun, ItemStack bullet) {
-        PersistentProjectileEntity persistentProjectileEntity = null;
+    private static AbstractArrow createBullet(Level world, LivingEntity entity, ItemStack gun, ItemStack bullet) {
+    	AbstractArrow persistentProjectileEntity = null;
         if (bullet.getItem() instanceof BulletItem) {
             persistentProjectileEntity = ((BulletItem) bullet.getItem()).createBullet(world, bullet, entity,
                     ((GunItem)gun.getItem()).damage, 0, ((GunItem)gun.getItem()).HIT, ((GunItem)gun.getItem()).damageType);
         }
-        if (entity instanceof PlayerEntity && persistentProjectileEntity != null) {
-            persistentProjectileEntity.setCritical(true);
+        if (entity instanceof Player && persistentProjectileEntity != null) {
+            persistentProjectileEntity.setCritArrow(true);
         }
         if (persistentProjectileEntity != null) {
-            persistentProjectileEntity.setSound(GunItem.getHitSound((GunItem) gun.getItem()));
+            persistentProjectileEntity.setSoundEvent(GunItem.getHitSound((GunItem) gun.getItem()));
             persistentProjectileEntity.setShotFromCrossbow(true);
-            int i = EnchantmentHelper.getLevel(Enchantments.PIERCING, gun) + ((GunItem) gun.getItem()).piercing;
+            int i = EnchantmentHelper.getTagEnchantmentLevel(Enchantments.PIERCING, gun) + ((GunItem) gun.getItem()).piercing;
             if (i > 0) {
                 persistentProjectileEntity.setPierceLevel((byte) i);
             }
-            persistentProjectileEntity.setDamage(2);
+            persistentProjectileEntity.setBaseDamage(2);
         }
         return persistentProjectileEntity;
     }
 
-    public static void shootAll(World world, LivingEntity entity, ItemStack stack, float speed, float divergence) {
+    public static void shootAll(Level world, LivingEntity entity, ItemStack stack, float speed, float divergence) {
         List<ItemStack> list = getProjectiles(stack);
         float[] fs = getSoundPitches(entity.getRandom());
 
-        if (!entity.getEntityWorld().isClient) {
-            ((ServerWorld) entity.getEntityWorld()).spawnParticles(ParticleTypes.POOF,
+        if (!entity.getCommandSenderWorld().isClientSide) {
+            ((ServerLevel) entity.getCommandSenderWorld()).sendParticles(ParticleTypes.POOF,
                     entity.getX(),
                     entity.getY() + 1.4,
                     entity.getZ(),
@@ -308,34 +320,34 @@ public class GunItem extends CrossbowItem {
         }
         postShoot(world, entity, stack);
         Random random = new Random();
-        if (BlackPowder.config.funMode && random.nextInt(1001) == 1000) {
+        if (BlackPowder.config.FUN_MODE.get() && random.nextInt(1001) == 1000) {
             List<Entity> nearbyEntities = world.getOtherEntities(null, new Box(entity.getX() - 1000, entity.getY() - 1000, entity.getZ() - 1000,
                     entity.getX() + 1000, entity.getY() + 1000, entity.getZ() + 1000));
             for (Entity entity2 : nearbyEntities) {
-                if (entity2 instanceof PlayerEntity) {
-                    entity2.damage(DamageSource.explosion(entity), 5000);
+                if (entity2 instanceof Player) {
+                    entity2.damageSources().explosion(new Explosion(world, entity, entity2.getX(), entity2.getY(), entity2.getZ(), 5000, null));
                 }
             }
         }
     }
 
-    private static float[] getSoundPitches(Random random) {
-        boolean bl = random.nextBoolean();
+    private static float[] getSoundPitches(RandomSource randomSource) {
+        boolean bl = randomSource.nextBoolean();
         return new float[]{1.0F, getSoundPitch(bl), getSoundPitch(!bl)};
     }
 
     private static float getSoundPitch(boolean flag) {
+        Random random = new Random();
         float f = flag ? 0.63F : 0.43F;
-        return 1.0F / (RANDOM.nextFloat() * 0.5F + 1.8F) + f;
+        return 1.0F / (random.nextFloat() * 0.5F + 1.8F) + f;
     }
 
-    private static void postShoot(World world, LivingEntity entity, ItemStack stack) {
-        if (entity instanceof ServerPlayerEntity) {
-            ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity)entity;
-            if (!world.isClient) {
-                Criteria.SHOT_CROSSBOW.trigger(serverPlayerEntity, stack);
+    private static void postShoot(Level world, LivingEntity entity, ItemStack stack) {
+        if (entity instanceof ServerPlayer) {
+        	ServerPlayer serverPlayerEntity = (ServerPlayer)entity;
+            if (!world.isClientSide) {
+            	CriteriaTriggers.SHOT_CROSSBOW.trigger(serverPlayerEntity, stack);
             }
-
             serverPlayerEntity.incrementStat(Stats.USED.getOrCreateStat(stack.getItem()));
         }
 
@@ -343,11 +355,11 @@ public class GunItem extends CrossbowItem {
     }
 
     @Override
-    public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
-        if (!world.isClient) {
+    public void onUseTick(Level world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+        if (!world.isClientSide) {
             SoundEvent soundEvent = this.getQuickChargeSound();
             SoundEvent soundEvent2 = MIDDLE;
-            float f = (float)(stack.getMaxUseTime() - remainingUseTicks) / (float)getPullTime(stack);
+            float f = (float)(stack.getMaxStackSize() - remainingUseTicks) / (float)getPullTime(stack);
             if (f < 0.2F) {
                 this.charged = false;
                 this.loaded = false;
@@ -355,12 +367,12 @@ public class GunItem extends CrossbowItem {
 
             if (f >= 0.2F && !this.charged) {
                 this.charged = true;
-                world.playSound(null, user.getX(), user.getY(), user.getZ(), soundEvent, SoundCategory.PLAYERS, 0.5F, 1.0F);
+                world.playSound(null, user.getX(), user.getY(), user.getZ(), soundEvent, SoundSource.PLAYERS, 0.5F, 1.0F);
             }
 
             if (f >= 0.5F && soundEvent2 != null && !this.loaded) {
                 this.loaded = true;
-                world.playSound(null, user.getX(), user.getY(), user.getZ(), soundEvent2, SoundCategory.PLAYERS, 0.5F, 1.0F);
+                world.playSound(null, user.getX(), user.getY(), user.getZ(), soundEvent2, SoundSource.PLAYERS, 0.5F, 1.0F);
             }
         }
 
@@ -371,12 +383,12 @@ public class GunItem extends CrossbowItem {
     }
 
     public static int getPullTime(ItemStack stack) {
-        int i = EnchantmentHelper.getLevel(Enchantments.QUICK_CHARGE, stack);
+        int i = EnchantmentHelper.getTagEnchantmentLevel(Enchantments.QUICK_CHARGE, stack);
         return i == 0 ? getChargeTime((GunItem) stack.getItem()) : getChargeTime((GunItem) stack.getItem()) - getQuickChargeChange((GunItem) stack.getItem()) * i;
     }
 
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.CROSSBOW;
+    public UseAnim getUseAction(ItemStack stack) {
+        return UseAnim.CROSSBOW;
     }
 
     private SoundEvent getQuickChargeSound() {
@@ -393,7 +405,7 @@ public class GunItem extends CrossbowItem {
     }
 
     @Environment(EnvType.CLIENT)
-    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+    public void appendTooltip(ItemStack stack, @Nullable Level world, List<Text> tooltip, TooltipContext context) {
         List<ItemStack> list = getProjectiles(stack);
         if (isCharged(stack) && !list.isEmpty()) {
             ItemStack itemStack = list.get(0);
@@ -422,7 +434,7 @@ public class GunItem extends CrossbowItem {
     }
 
     @Override
-    public boolean isUsedOnRelease(ItemStack stack) {
+    public boolean useOnRelease(ItemStack stack) {
         return stack.getItem() instanceof GunItem;
     }
 }

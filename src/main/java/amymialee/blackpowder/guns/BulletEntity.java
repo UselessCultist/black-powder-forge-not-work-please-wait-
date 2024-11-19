@@ -2,44 +2,44 @@ package amymialee.blackpowder.guns;
 
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.network.Packet;
 import net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class BulletEntity extends ArrowEntity {
+public class BulletEntity extends Arrow {
     private final String damageType;
 
-    public BulletEntity(World world, LivingEntity owner, double damage, int punch, SoundEvent sound, String damageType) {
+    public BulletEntity(Level world, LivingEntity owner, double damage, int punch, SoundEvent sound, String damageType) {
         super(world, owner);
         this.damage = damage;
         this.punch = punch;
         this.sound = sound;
-        this.setAir(500);
+        this.setAirSupply(500);
         this.damageType = damageType;
     }
 
     public void tick() {
         super.tick();
         if (this.inGround) {
-            this.destroy();
+        	this.kill();
         }
     }
 
@@ -50,7 +50,7 @@ public class BulletEntity extends ArrowEntity {
     private List<Entity> piercingKilledEntities;
 
     @Override
-    protected void onEntityHit(EntityHitResult entityHitResult) {
+    protected void onHitEntity(EntityHitResult entityHitResult) {
         Entity entity = entityHitResult.getEntity();
         if (this.getPierceLevel() > 0) {
             if (this.piercedEntities == null) {
@@ -60,10 +60,10 @@ public class BulletEntity extends ArrowEntity {
                 this.piercingKilledEntities = Lists.newArrayListWithCapacity(5);
             }
             if (this.piercedEntities.size() >= this.getPierceLevel() + 1) {
-                this.remove();
+                this.discard();
                 return;
             }
-            this.piercedEntities.add(entity.getEntityId());
+            this.piercedEntities.add(entity.getId());
         }
         Entity entity2 = this.getOwner();
         DamageSource damageSource2 = null;

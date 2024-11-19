@@ -2,42 +2,54 @@ package amymialee.blackpowder;
 
 import amymialee.blackpowder.guns.BlackPowderGuns;
 import amymialee.blackpowder.items.BlackPowderItems;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Material;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.ToIntFunction;
 
-public class BlackPowder implements ModInitializer {
+@Mod(BlackPowder.MODID)
+public class BlackPowder{
     public static final String MODID = "blackpowder";
 
-    public static final Block TARGET_LAMP = new TargetLampBlock(FabricBlockSettings.of(Material.NETHER_WOOD).strength(1.0f).luminance(fullLight()));
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
+    
+    public static final RegistryObject<Block> TARGET_LAMP_BLOCK = BLOCKS.register("target_lamp_block", () -> new TargetLampBlock(BlockBehaviour.Properties.of().strength(1.0f).lightLevel(fullLight())));
+    public static final RegistryObject<Item> TARGET_LAMP_BLOCK_ITEM = ITEMS.register("target_lamp_block", () -> new BlockItem(TARGET_LAMP_BLOCK.get(), new Item.Properties()));
+    
     private static ToIntFunction<BlockState> fullLight() {
-        return (blockState) -> (Boolean)blockState.get(Properties.LIT) ? 15 : 0;
+        return (blockState) -> (Boolean)blockState.getValue(TargetLampBlock.LIT) ? 15 : 0;
     }
-
+    
     public static BlackPowderConfig config;
 
-    @Override
-    public void onInitialize() {
-        AutoConfig.register(BlackPowderConfig.class, Toml4jConfigSerializer::new);
-        config = AutoConfig.getConfigHolder(BlackPowderConfig.class).getConfig();
+    public BlackPowder() 
+    {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        // Register the Deferred Register to the mod event bus so blocks get registered
+        BLOCKS.register(modEventBus);
+        // Register the Deferred Register to the mod event bus so items get registered
+        ITEMS.register(modEventBus);
+
+        // Register ourselves for server and other game events we are interested in
+        MinecraftForge.EVENT_BUS.register(this);
+    	
+    	ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, BlackPowder.config.SPEC, "common.toml");
 
         BlackPowderGuns.register();
         BlackPowderItems.register();
-
-        Registry.register(Registry.BLOCK, new Identifier(MODID, "target_lamp"), TARGET_LAMP);
-        Registry.register(Registry.ITEM, new Identifier(MODID, "target_lamp"),
-                new BlockItem(TARGET_LAMP, new FabricItemSettings().group(ItemGroup.REDSTONE)));
     }
 }
