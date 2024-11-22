@@ -2,26 +2,22 @@ package amymialee.blackpowder.guns;
 
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.network.Packet;
-import net.minecraft.network.packet.s2c.play.GameStateChangeS2CPacket;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class BulletEntity extends Arrow {
@@ -51,6 +47,7 @@ public class BulletEntity extends Arrow {
 
     @Override
     protected void onHitEntity(EntityHitResult entityHitResult) {
+        super.onHitEntity(entityHitResult);
         Entity entity = entityHitResult.getEntity();
         if (this.getPierceLevel() > 0) {
             if (this.piercedEntities == null) {
@@ -70,48 +67,49 @@ public class BulletEntity extends Arrow {
         if (entity2 == null) {
             switch (damageType) {
                 case "bullet":
-                    damageSource2 = BulletDamageSource.bullet(this, this);
+                    damageSource2 = BulletDamageSource.bullet(this.level(),this, this);
                     break;
                 case "shotgun_bullet":
-                    damageSource2 = BulletDamageSource.shotgun_bullet(this, this);
+                    damageSource2 = BulletDamageSource.shotgun_bullet(this.level(),this, this);
                     break;
                 case "pierce_bullet":
-                    damageSource2 = BulletDamageSource.pierce_bullet(this, this);
+                    damageSource2 = BulletDamageSource.pierce_bullet(this.level(),this, this);
                     break;
                 case "strong_bullet":
-                    damageSource2 = BulletDamageSource.strong_bullet(this, this);
+                    damageSource2 = BulletDamageSource.strong_bullet(this.level(),this, this);
                     break;
             }
         } else {
             switch (damageType) {
                 case "bullet":
-                    damageSource2 = BulletDamageSource.bullet(this, entity2);
+                    damageSource2 = BulletDamageSource.bullet(this.level(),this, entity2);
                     break;
                 case "shotgun_bullet":
-                    damageSource2 = BulletDamageSource.shotgun_bullet(this, entity2);
+                    damageSource2 = BulletDamageSource.shotgun_bullet(this.level(),this, entity2);
                     break;
                 case "pierce_bullet":
-                    damageSource2 = BulletDamageSource.pierce_bullet(this, entity2);
+                    damageSource2 = BulletDamageSource.pierce_bullet(this.level(),this, entity2);
                     break;
                 case "strong_bullet":
-                    damageSource2 = BulletDamageSource.strong_bullet(this, entity2);
+                    damageSource2 = BulletDamageSource.strong_bullet(this.level(),this, entity2);
                     break;
             }
             if (entity2 instanceof LivingEntity) {
-                ((LivingEntity) entity2).onAttacking(entity);
+
+                ((LivingEntity) entity2).setLastHurtMob(entity);// .onAttacking(entity);
             }
         }
 
         boolean bl = entity.getType() == EntityType.ENDERMAN;
-        int j = entity.getFireTicks();
+        int j = entity.getRemainingFireTicks();
         if (this.isOnFire() && !bl) {
-            entity.setOnFireFor(5);
+            entity.setSecondsOnFire(5);
         }
         if (entity instanceof LivingEntity) {
-            entity.timeUntilRegen = 0;
+            //entity.timeUntilRegen = 0;
             ((LivingEntity) entity).hurtTime = 0;
         }
-        if (entity.damage(damageSource2, (float) damage)) {
+        if (entity.hurt(damageSource2,(float) damage)) {
             if (bl) {
                 return;
             }
@@ -119,20 +117,21 @@ public class BulletEntity extends Arrow {
             if (entity instanceof LivingEntity) {
                 LivingEntity livingEntity = (LivingEntity) entity;
                 if (this.punch > 0) {
-                    Vec3d vec3d = this.getVelocity().multiply(1.0D, 0.0D, 1.0D).normalize().multiply((double) this.punch * 0.6D);
-                    if (vec3d.lengthSquared() > 0.0D) {
-                        livingEntity.addVelocity(vec3d.x * 1.5, 0.15D, vec3d.z * 1.5);
+                    double d0 = Math.max(0.0D, 1.0D - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+                    Vec3 vec3d = this.getDeltaMovement().multiply(1.0D, 0.0D, 1.0D).normalize().scale((double)this.punch * 0.6D * d0);
+                    if (vec3d.lengthSqr() > 0.0D) {
+                        livingEntity.push(vec3d.x * 1.5, 0.15D, vec3d.z * 1.5);
                     }
                 }
 
-                if (!this.world.isClient && entity2 instanceof LivingEntity) {
-                    EnchantmentHelper.onUserDamaged(livingEntity, entity2);
-                    EnchantmentHelper.onTargetDamaged((LivingEntity) entity2, livingEntity);
+                if (!this.level().isClientSide() && entity2 instanceof LivingEntity) {
+                    EnchantmentHelper.doPostHurtEffects(livingEntity, entity2);
+                    EnchantmentHelper.doPostDamageEffects((LivingEntity) entity2, livingEntity);
                 }
 
-                this.onHit(livingEntity);
-                if (livingEntity != entity2 && livingEntity instanceof PlayerEntity && entity2 instanceof ServerPlayerEntity && !this.isSilent()) {
-                    ((ServerPlayerEntity) entity2).networkHandler.sendPacket(new GameStateChangeS2CPacket(GameStateChangeS2CPacket.PROJECTILE_HIT_PLAYER, 0.0F));
+                this.doPostHurtEffects(livingEntity);
+                if (livingEntity != entity2 && livingEntity instanceof Player && entity2 instanceof ServerPlayer && !this.isSilent()) {
+                	((ServerPlayer)entity2).connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.ARROW_HIT_PLAYER, 0.0F));
                 }
 
                 if (!entity.isAlive() && this.piercingKilledEntities != null) {
@@ -151,19 +150,19 @@ public class BulletEntity extends Arrow {
 
             this.playSound(this.sound, 1.0F, 1.2F / (this.random.nextFloat() * 0.2F + 0.9F));
             if (this.getPierceLevel() <= 0) {
-                this.remove();
+                this.discard();
             }
         } else {
-            entity.setFireTicks(j);
-            this.setVelocity(this.getVelocity().multiply(-0.1D));
-            this.yaw += 180.0F;
-            this.prevYaw += 180.0F;
-            if (!this.world.isClient && this.getVelocity().lengthSquared() < 1.0E-7D) {
-                if (this.pickupType == PersistentProjectileEntity.PickupPermission.ALLOWED) {
-                    this.dropStack(this.asItemStack(), 0.1F);
-                }
+            entity.setRemainingFireTicks(j);
+            this.setDeltaMovement(this.getDeltaMovement().scale(-0.1D));
+            this.setYRot(this.getYRot() + 180.0F);
+            this.yRotO += 180.0F;
+            if (!this.level().isClientSide && this.getDeltaMovement().lengthSqr() < 1.0E-7D) {
+               if (this.pickup == AbstractArrow.Pickup.ALLOWED) {
+                  this.spawnAtLocation(this.getPickupItem(), 0.1F);
+               }
 
-                this.remove();
+                this.discard();
             }
         }
     }

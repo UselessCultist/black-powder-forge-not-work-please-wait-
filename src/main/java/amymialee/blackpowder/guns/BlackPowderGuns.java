@@ -1,10 +1,10 @@
 package amymialee.blackpowder.guns;
 
 import amymialee.blackpowder.BlackPowder;
-import com.oroarmor.multi_item_lib.UniqueItemRegistry;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.Identifier;
 
 import static amymialee.blackpowder.items.BlackPowderItems.*;
 import static amymialee.blackpowder.BlackPowder.*;
@@ -39,43 +39,46 @@ public class BlackPowderGuns {
             GunSoundEvents.ENTITY_BULLET_IMPACT.get()
     };
 
-    public static Item FLINTLOCK_PISTOL = new GunItem(1, config.FlintlockInaccuracy, config.FlintlockReloadTime, config.FlintlockQuickChargeTime,
-            flintlockSounds, 12F, MUSKET_BALL, config.FlintlockDamage, 0, "bullet");
+    public static final DeferredRegister<Item> GUN_ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
+    
+    public static Item FLINTLOCK_PISTOL = new GunItem(1, config.FLINTLOCK_CARBINE_INACCURACY.get(), config.FLINTLOCK_RELOAD_TIME.get(), config.FLINTLOCK_QUICK_CHARGE_TIME.get(),
+            flintlockSounds, 12F, MUSKET_BALL, config.FLINTLOCK_DAMAGE.get(), 0, "bullet");
 
-    public static Item BLUNDERBUSS = new GunItem(8, config.BlunderbussInaccuracy, config.BlunderbussReloadTime, config.BlunderbussQuickChargeTime,
-            blunderbussSounds, 8F, BLUNDER_BALL, config.BlunderbussDamage, 0, "shotgun_bullet");
+    public static Item BLUNDERBUSS = new GunItem(8, config.BLUNDERBUSS_INACCURACY.get(), config.BLUNDERBUSS_RELOAD_TIME.get(), config.BLUNDERBUSS_QUICK_CHARGE_TIME.get(),
+            blunderbussSounds, 8F, BLUNDER_BALL, config.BLUNDERBUSS_DAMAGE.get(), 0, "shotgun_bullet");
 
-    public static Item RIFLE = new GunItem(1, config.RifleInaccuracy, config.RifleReloadTime, config.RifleQuickChargeTime,
-            rifleSounds, 22F, MUSKET_BALL, config.RifleDamage, 0, "pierce_bullet");
+    public static Item RIFLE = new GunItem(1, config.RIFLE_INACCURACY.get(), config.RIFLE_RELOAD_TIME.get(), config.RIFLE_QUICK_CHARGE_TIME.get(),
+            rifleSounds, 22F, MUSKET_BALL, config.RIFLE_DAMAGE.get(), 0, "pierce_bullet");
 
-    public static Item MUSKET = new GunItem(1, config.MusketInaccuracy, config.MusketReloadTime, config.MusketQuickChargeTime,
-            musketSounds, 16F, MUSKET_BALL, config.MusketDamage, 0, "strong_bullet");
+    public static Item MUSKET = new GunItem(1, config.MUSKET_INACCURACY.get(), config.MUSKET_RELOAD_TIME.get(), config.MUSKET_QUICK_CHARGE_TIME.get(),
+            musketSounds, 16F, MUSKET_BALL, config.MUSKET_DAMAGE.get(), 0, "strong_bullet");
 
 
-    public static Item FLINTLOCK_CARBINE = new GunItem(1, config.FlintlockCarbineInaccuracy, config.FlintlockCarbineReloadTime, config.FlintlockCarbineQuickChargeTime,
-            flintlockSounds, 12F, MUSKET_BALL, config.FlintlockCarbineDamage, 0, "bullet");
+    public static Item FLINTLOCK_CARBINE = new GunItem(1, config.FLINTLOCK_CARBINE_INACCURACY.get(), config.FLINTLOCK_CARBINE_RELOAD_TIME.get(), config.FLINTLOCK_CARBINE_QUICK_CHARGE_TIME.get(),
+            flintlockSounds, 12F, MUSKET_BALL, config.FLINTLOCK_CARBINE_DAMAGE.get(), 0, "bullet");
 
-    public static Item BLUNDERBEHEMOTH = new GunItem(800, config.BlunderbehemothInaccuracy, config.BlunderbehemothReloadTime, config.BlunderbehemothQuickChargeTime,
-            blunderbussSounds, 8F, BLUNDER_BALL, config.BlunderbehemothDamage, 0, "shotgun_bullet");
+    public static Item BLUNDERBEHEMOTH = new GunItem(800, config.BLUNDERBEHEMOTH_INACCURACY.get(), config.BLUNDERBEHEMOTH_RELOAD_TIME.get(), config.BLUNDERBEHEMOTH_QUICK_CHARGE_TIME.get(),
+            blunderbussSounds, 8F, BLUNDER_BALL, config.BLUNDERBEHEMOTH_DAMAGE.get(), 0, "shotgun_bullet");
 
-    public static Item RESOLUTE_RIFLE = new GunItem(1, config.ResoluteRifleInaccuracy, config.ResoluteRifleReloadTime, config.ResoluteRifleQuickChargeTime,
-            rifleSounds, 198F, MUSKET_BALL, config.ResoluteRifleDamage, 100, "pierce_bullet");
+    public static Item RESOLUTE_RIFLE = new GunItem(1, config.RESOLUTERIFLE_INACCURACY.get(), config.RESOLUTERIFLE_RELOAD_TIME.get(), config.RESOLUTERIFLE_QUICK_CHARGE_TIME.get(),
+            rifleSounds, 198F, MUSKET_BALL, config.RESOLUTE_RIFLE_DAMAGE.get(), 100, "pierce_bullet");
 
-    public static Item BOUNDLESS_MUSKET = new GunItem(1, config.BoundlessMusketInaccuracy, config.BoundlessMusketReloadTime, config.BoundlessMusketQuickChargeTime,
-            musketSounds, 16F, MUSKET_BALL, config.BoundlessMusketDamage, 0, "strong_bullet");
+    public static Item BOUNDLESS_MUSKET = new GunItem(1, config.BOUNDLESSMUSKET_INACCURACY.get(), config.BOUNDLESSMUSKET_RELOAD_TIME.get(), config.BOUNDLESSMUSKET_QUICK_CHARGE_TIME.get(),
+            musketSounds, 16F, MUSKET_BALL, config.BOUNDLESSMUSKET_DAMAGE.get(), 0, "strong_bullet");
 
     public static void register() {
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "flintlock_pistol"), FLINTLOCK_PISTOL);
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "blunderbuss"), BLUNDERBUSS);
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "rifle"), RIFLE);
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "musket"), MUSKET);
+    	
+    	GUN_ITEMS.register("flintlock_pistol",()->FLINTLOCK_PISTOL);
+    	GUN_ITEMS.register("blunderbuss",()->BLUNDERBUSS);
+    	GUN_ITEMS.register("rifle",()->RIFLE);
+    	GUN_ITEMS.register("musket",()->MUSKET);
+    	
+    	GUN_ITEMS.register("flintlock_carbine",()->FLINTLOCK_CARBINE);
+    	GUN_ITEMS.register("blunderbehemoth",()->BLUNDERBEHEMOTH);
+    	GUN_ITEMS.register("resolute_rifle",()->RESOLUTE_RIFLE);
+    	GUN_ITEMS.register("boundless_musket",()->BOUNDLESS_MUSKET);
 
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "flintlock_carbine"), FLINTLOCK_CARBINE);
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "blunderbehemoth"), BLUNDERBEHEMOTH);
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "resolute_rifle"), RESOLUTE_RIFLE);
-        Registry.register(Registry.ITEM, new Identifier(BlackPowder.MODID, "boundless_musket"), BOUNDLESS_MUSKET);
-
-        UniqueItemRegistry.CROSSBOW.addItemToRegistry(FLINTLOCK_PISTOL);
+        /*UniqueItemRegistry.CROSSBOW.addItemToRegistry(FLINTLOCK_PISTOL);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(BLUNDERBUSS);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(RIFLE);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(MUSKET);
@@ -83,6 +86,6 @@ public class BlackPowderGuns {
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(FLINTLOCK_CARBINE);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(BLUNDERBEHEMOTH);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(RESOLUTE_RIFLE);
-        UniqueItemRegistry.CROSSBOW.addItemToRegistry(BOUNDLESS_MUSKET);
+        UniqueItemRegistry.CROSSBOW.addItemToRegistry(BOUNDLESS_MUSKET);*/
     }
 }

@@ -3,45 +3,32 @@ package amymialee.blackpowder.guns;
 import amymialee.blackpowder.BlackPowder;
 import amymialee.blackpowder.items.BulletItem;
 import com.google.common.collect.Lists;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.monster.CrossbowAttackMob;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stat;
 import net.minecraft.stats.Stats;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.UseAction;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +57,7 @@ public class GunItem extends CrossbowItem {
 
     public GunItem(int bulletCount, float inaccuracy, int chargeTime, int quickChargeChange, SoundEvent[] soundEvents,
                    float velocity, Item ammo, int damage, int piercing, String damageType) {
-        super(new FabricItemSettings().group(ItemGroup.COMBAT).maxCount(1).fireproof());
+        super(new Item.Properties().stacksTo(1)); //.group(ItemGroup.COMBAT).maxCount(1).fireproof()
         this.bulletCount = bulletCount;
         this.inaccuracy = inaccuracy;
         this.chargeTime = chargeTime;
@@ -246,9 +233,9 @@ public class GunItem extends CrossbowItem {
     private static void shoot(Level world, LivingEntity shooter, ItemStack gun, ItemStack projectile, float soundPitch, float speed, float divergence, float simulated) {
         if (!world.isClientSide) {
             for(int b = 0; b < GunItem.getBulletCount((GunItem) gun.getItem()); b++) {
-            	Projectile projectileEntity2 = createBullet(world, shooter, gun, projectile);
+            	AbstractArrow projectileEntity2 = createBullet(world, shooter, gun, projectile);
                 if (projectileEntity2 != null) {
-                    ((AbstractArrow)projectileEntity2).pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
+                    (projectileEntity2).pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
 
                     if (shooter instanceof CrossbowAttackMob) {
                     	CrossbowAttackMob crossbowUser = (CrossbowAttackMob) shooter;
@@ -262,7 +249,7 @@ public class GunItem extends CrossbowItem {
                         projectileEntity2.shoot((double)vector3f.x(), (double)vector3f.y(), (double)vector3f.z(), speed, divergence);
                     }
 
-                    world.spawnEntity(projectileEntity2);
+                    world.addFreshEntity(projectileEntity2);
                 }
             }
             world.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(), GunItem.getShootSound((GunItem) gun.getItem()), SoundSource.PLAYERS, 1.0F, soundPitch);
@@ -321,7 +308,7 @@ public class GunItem extends CrossbowItem {
         postShoot(world, entity, stack);
         Random random = new Random();
         if (BlackPowder.config.FUN_MODE.get() && random.nextInt(1001) == 1000) {
-            List<Entity> nearbyEntities = world.getOtherEntities(null, new Box(entity.getX() - 1000, entity.getY() - 1000, entity.getZ() - 1000,
+            List<Entity> nearbyEntities = world.getEntities(null, new AABB(entity.getX() - 1000, entity.getY() - 1000, entity.getZ() - 1000,
                     entity.getX() + 1000, entity.getY() + 1000, entity.getZ() + 1000));
             for (Entity entity2 : nearbyEntities) {
                 if (entity2 instanceof Player) {
@@ -348,7 +335,7 @@ public class GunItem extends CrossbowItem {
             if (!world.isClientSide) {
             	CriteriaTriggers.SHOT_CROSSBOW.trigger(serverPlayerEntity, stack);
             }
-            serverPlayerEntity.incrementStat(Stats.USED.getOrCreateStat(stack.getItem()));
+            serverPlayerEntity.awardStat(Stats.ITEM_USED.get(stack.getItem()));
         }
 
         clearProjectiles(stack);
@@ -404,18 +391,17 @@ public class GunItem extends CrossbowItem {
         return f;
     }
 
-    @Environment(EnvType.CLIENT)
-    public void appendTooltip(ItemStack stack, @Nullable Level world, List<Text> tooltip, TooltipContext context) {
+    public void appendTooltip(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
         List<ItemStack> list = getProjectiles(stack);
         if (isCharged(stack) && !list.isEmpty()) {
             ItemStack itemStack = list.get(0);
-            tooltip.add((new TranslatableText("item.minecraft.crossbow.projectile")).append(" ").append(itemStack.toHoverableText()));
+            tooltip.add(Component.translatable("item.minecraft.crossbow.projectile").append(CommonComponents.SPACE).append(itemStack.getDisplayName()));
             if (context.isAdvanced() && itemStack.getItem() == Items.FIREWORK_ROCKET) {
-                List<Text> list2 = Lists.newArrayList();
-                Items.FIREWORK_ROCKET.appendTooltip(itemStack, world, list2, context);
+                List<Component> list2 = Lists.newArrayList();
+                Items.FIREWORK_ROCKET.appendHoverText(itemStack, world, list2, context);
                 if (!list2.isEmpty()) {
                     for(int i = 0; i < list2.size(); ++i) {
-                        list2.set(i, (new LiteralText("  ")).append(list2.get(i)).formatted(Formatting.GRAY));
+                        list2.set(i, Component.literal("  ").append(list2.get(i)).withStyle(ChatFormatting.GRAY));
                     }
 
                     tooltip.addAll(list2);
