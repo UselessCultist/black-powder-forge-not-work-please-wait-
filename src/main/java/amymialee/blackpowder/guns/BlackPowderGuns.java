@@ -2,6 +2,7 @@ package amymialee.blackpowder.guns;
 
 import amymialee.blackpowder.BlackPowder;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.sounds.SoundEvent;
@@ -68,6 +69,8 @@ public class BlackPowderGuns {
 
     public static void register() {
     	
+    	GUN_ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
+    	
     	GUN_ITEMS.register("flintlock_pistol",()->FLINTLOCK_PISTOL);
     	GUN_ITEMS.register("blunderbuss",()->BLUNDERBUSS);
     	GUN_ITEMS.register("rifle",()->RIFLE);
@@ -78,7 +81,7 @@ public class BlackPowderGuns {
     	GUN_ITEMS.register("resolute_rifle",()->RESOLUTE_RIFLE);
     	GUN_ITEMS.register("boundless_musket",()->BOUNDLESS_MUSKET);
 
-        /*UniqueItemRegistry.CROSSBOW.addItemToRegistry(FLINTLOCK_PISTOL);
+    	/*UniqueItemRegistry.CROSSBOW.addItemToRegistry(FLINTLOCK_PISTOL);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(BLUNDERBUSS);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(RIFLE);
         UniqueItemRegistry.CROSSBOW.addItemToRegistry(MUSKET);
