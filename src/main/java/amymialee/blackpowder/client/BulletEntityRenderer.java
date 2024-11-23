@@ -1,22 +1,19 @@
 package amymialee.blackpowder.client;
 
 import amymialee.blackpowder.guns.BulletEntity;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.render.entity.ProjectileEntityRenderer;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.entity.ArrowRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.resources.ResourceLocation;
 
-@Environment(EnvType.CLIENT)
-public class BulletEntityRenderer extends ProjectileEntityRenderer<BulletEntity> {
-    public static final Identifier TEXTURE = new Identifier("textures/entity/arrowd.png");
+public class BulletEntityRenderer extends ArrowRenderer<BulletEntity> {
+    public static final ResourceLocation TEXTURE = new ResourceLocation("textures/entity/arrowd.png");
 
-    public BulletEntityRenderer(EntityRenderDispatcher entityRenderDispatcher) {
-        super(entityRenderDispatcher);
+    public BulletEntityRenderer(EntityRendererProvider.Context pContext) {
+        super(pContext);
     }
 
-    @Override
-    public Identifier getTexture(BulletEntity entity) {
-        return TEXTURE;
-    }
+	@Override
+	public ResourceLocation getTextureLocation(BulletEntity pEntity) {
+		return TEXTURE;
+	}
 }

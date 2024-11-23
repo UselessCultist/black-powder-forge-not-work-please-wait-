@@ -38,11 +38,14 @@ import amymialee.blackpowder.BlackPowder;
 public class BulletDamageSource extends DamageSource {
 	static final DeferredRegister<SoundEvent> GUN_SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BlackPowder.MODID);
 	
-	static final ResourceKey<DamageType> BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"bullet"));
+
+	public static final ResourceKey<DamageType> BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"bullet"));
 	static final ResourceKey<DamageType> SHOTGUN_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"shotgun_bullet"));
 	static final ResourceKey<DamageType> PIERCE_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"pierce_bullet"));
 	static final ResourceKey<DamageType> STRONG_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"strong_bullet"));
 
+	static final TagKey<DamageType> BULLETS = TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"bullet_tag"));
+	
 
     public BulletDamageSource(Reference <DamageType> holder, Entity projectile, @Nullable Entity attacker) {
     	super(holder,projectile,attacker);
