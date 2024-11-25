@@ -98,11 +98,11 @@ public class GunItem extends CrossbowItem {
     private boolean charged = false;
     private boolean loaded = false;
 
-    public Predicate<ItemStack> getHeldProjectiles() {
-        return getProjectiles().or((stack) -> stack.getItem() == Items.ARROW);
+    public Predicate<ItemStack> getSupportedHeldProjectiles() {
+        return getAllSupportedProjectiles();
     }
 
-    public Predicate<ItemStack> getProjectiles() {
+    public Predicate<ItemStack> getAllSupportedProjectiles() {
         return (stack) -> stack.getItem() == ammo.get();
     }
 
@@ -258,7 +258,7 @@ public class GunItem extends CrossbowItem {
 
     private static AbstractArrow createBullet(Level world, LivingEntity entity, ItemStack gun, ItemStack bullet) {
     	BulletItem bulletitem = (BulletItem)(bullet.getItem() instanceof BulletItem ? bullet.getItem() : BlackPowderItems.MUSKET_BALL.get());
-    	AbstractArrow persistentProjectileEntity = bulletitem.createBullet(world, bullet, entity,
+    	BulletEntity persistentProjectileEntity = bulletitem.createBullet(world, bullet, entity,
                 ((GunItem)gun.getItem()).damage, 0, ((GunItem)gun.getItem()).HIT.get(), ((GunItem)gun.getItem()).damageType);
 
         if (entity instanceof Player && persistentProjectileEntity != null) {

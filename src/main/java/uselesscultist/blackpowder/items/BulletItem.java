@@ -14,7 +14,7 @@ public class BulletItem extends ArrowItem {
         super(properties);
     }
 
-    public Arrow createBullet(Level world, ItemStack stack, LivingEntity shooter, double damage, int punch, SoundEvent sound, String damageType) {
+    public BulletEntity createBullet(Level world, ItemStack stack, LivingEntity shooter, double damage, int punch, SoundEvent sound, String damageType) {
         return new BulletEntity(world, shooter, damage, punch, sound, damageType);
     }
 }

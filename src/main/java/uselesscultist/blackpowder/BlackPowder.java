@@ -15,9 +15,11 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import uselesscultist.blackpowder.blocks.BlackPowderBlocks;
 import uselesscultist.blackpowder.client.BlackPowderClient;
 import uselesscultist.blackpowder.guns.BlackPowderGuns;
 import uselesscultist.blackpowder.guns.GunSoundEvents;
+import uselesscultist.blackpowder.items.BlackPowderCreativeTabs;
 import uselesscultist.blackpowder.items.BlackPowderItems;
 
 import org.slf4j.Logger;
@@ -38,9 +40,12 @@ public class BlackPowder
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         
+        BlackPowderCreativeTabs.register(modEventBus);
         BlackPowderItems.register(modEventBus);
         GunSoundEvents.register(modEventBus);
         BlackPowderGuns.register(modEventBus);
+        BlackPowderBlocks.register(modEventBus);
+
         
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
@@ -61,12 +66,7 @@ public class BlackPowder
 
     private void addCreative(BuildCreativeModeTabContentsEvent event)
     {
-    	if(event.getTabKey() == CreativeModeTabs.COMBAT) 
-    	{
-    		event.accept(BlackPowderGuns.MUSKET);
-    		event.accept(BlackPowderItems.MUSKET_BALL);
-    		event.accept(BlackPowderItems.BLUNDER_BALL);
-    	}
+
     }
 
 
