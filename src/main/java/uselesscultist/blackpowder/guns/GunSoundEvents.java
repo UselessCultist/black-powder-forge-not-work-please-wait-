@@ -1,6 +1,6 @@
-package amymialee.blackpowder.guns;
+package uselesscultist.blackpowder.guns;
 
-import amymialee.blackpowder.BlackPowder;
+import uselesscultist.blackpowder.BlackPowder;
 import net.minecraftforge.common.util.ForgeSoundType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 
 public final class GunSoundEvents {
-    public static final DeferredRegister<SoundEvent> GUN_SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BlackPowder.MODID);
+    public static final DeferredRegister<SoundEvent> GUN_SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BlackPowder.MOD_ID);
 
     private GunSoundEvents() {}
 
@@ -38,9 +38,9 @@ public final class GunSoundEvents {
 
     
     public static RegistryObject<SoundEvent> registerSoundEvents(String name) {
-    	return GUN_SOUND_EVENTS.register(name, ()-> SoundEvent.createVariableRangeEvent(new ResourceLocation(BlackPowder.MODID,name)));
+    	return GUN_SOUND_EVENTS.register(name, ()-> SoundEvent.createVariableRangeEvent(new ResourceLocation(BlackPowder.MOD_ID,name)));
     }
-    
+
     public static void register(IEventBus eventBus) {
     	GUN_SOUND_EVENTS.register(eventBus);
     }

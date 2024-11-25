@@ -1,6 +1,6 @@
-package amymialee.blackpowder.client;
+package uselesscultist.blackpowder.client;
 
-import amymialee.blackpowder.guns.BulletEntity;
+import uselesscultist.blackpowder.guns.BulletEntity;
 import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;

@@ -1,6 +1,6 @@
-package amymialee.blackpowder.items;
+package uselesscultist.blackpowder.items;
 
-import amymialee.blackpowder.guns.BulletEntity;
+import uselesscultist.blackpowder.guns.BulletEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ArrowItem;

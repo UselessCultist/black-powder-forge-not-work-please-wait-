@@ -6,13 +6,13 @@
 	"overrides": [
 		{
 			"predicate": {
-				"charged": 0
+				"blackpowder:charged": 0
 			},
 			"model": "blackpowder:item/stock/blunderbuss_unloaded"
 		},
 		{
 			"predicate": {
-				"charged": 1
+				"blackpowder:charged": 1
 			},
 			"model": "blackpowder:item/stock/blunderbuss_loaded"
 		}

@@ -1,4 +1,4 @@
-package amymialee.blackpowder.guns;
+package uselesscultist.blackpowder.guns;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.Holder;
@@ -33,18 +33,18 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.datafixers.util.Either;
 
-import amymialee.blackpowder.BlackPowder;
+import uselesscultist.blackpowder.BlackPowder;
 
 public class BulletDamageSource extends DamageSource {
-	static final DeferredRegister<SoundEvent> GUN_SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BlackPowder.MODID);
+	static final DeferredRegister<SoundEvent> GUN_SOUND_EVENTS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BlackPowder.MOD_ID);
 	
 
-	public static final ResourceKey<DamageType> BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"bullet"));
-	static final ResourceKey<DamageType> SHOTGUN_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"shotgun_bullet"));
-	static final ResourceKey<DamageType> PIERCE_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"pierce_bullet"));
-	static final ResourceKey<DamageType> STRONG_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"strong_bullet"));
+	public static final ResourceKey<DamageType> BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MOD_ID,"bullet"));
+	static final ResourceKey<DamageType> SHOTGUN_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MOD_ID,"bullet"));
+	static final ResourceKey<DamageType> PIERCE_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MOD_ID,"bullet"));
+	static final ResourceKey<DamageType> STRONG_BULLET = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MOD_ID,"bullet"));
 
-	static final TagKey<DamageType> BULLETS = TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MODID,"bullet_tag"));
+	static final TagKey<DamageType> BULLETS = TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(BlackPowder.MOD_ID,"bullet_tag"));
 	
 
     public BulletDamageSource(Reference <DamageType> holder, Entity projectile, @Nullable Entity attacker) {
@@ -70,7 +70,6 @@ public class BulletDamageSource extends DamageSource {
     
 
     public static RegistryObject<SoundEvent> registeSoundEvents(String name) {
-    	return GUN_SOUND_EVENTS.register(name, ()-> SoundEvent.createVariableRangeEvent(new ResourceLocation(BlackPowder.MODID,name)));
+    	return GUN_SOUND_EVENTS.register(name, ()-> SoundEvent.createVariableRangeEvent(new ResourceLocation(BlackPowder.MOD_ID,name)));
     }
-    
 }

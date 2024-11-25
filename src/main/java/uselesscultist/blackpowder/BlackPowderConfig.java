@@ -1,4 +1,4 @@
-package amymialee.blackpowder;
+package uselesscultist.blackpowder;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 

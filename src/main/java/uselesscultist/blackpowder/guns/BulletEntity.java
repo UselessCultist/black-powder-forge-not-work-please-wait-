@@ -1,4 +1,4 @@
-package amymialee.blackpowder.guns;
+package uselesscultist.blackpowder.guns;
 
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
